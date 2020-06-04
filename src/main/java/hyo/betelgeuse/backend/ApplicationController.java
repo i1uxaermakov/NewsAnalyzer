@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 @Controller
 public class ApplicationController {
@@ -36,11 +38,20 @@ public class ApplicationController {
         return "Saved";
     }
 
-
-    public String getArticlesBetweenDates(
+    @PostMapping(path = "/getWordsBetweenDates")
+    public @ResponseBody List<WordOccurrenceItem> getArticlesBetweenDates(
             @RequestParam @DateTimeFormat(pattern="yyyy-MM-dd") Date startDate,
             @RequestParam @DateTimeFormat(pattern="yyyy-MM-dd") Date endDate) {
 
+        List<Article> articleList = articleRepository.
+                findByPublishDate(startDate, endDate);
+
+        System.out.println(articleList);
+
+        List<WordOccurrenceItem> wordOccurrences = WordOccurrenceCounter.
+                getWordOccurrences(articleList);
+
+        return wordOccurrences;
     }
 
 
@@ -52,6 +63,10 @@ public class ApplicationController {
     }
 
 
+    //todo upload a file and save everything to db
+    public String addArticlesInBulkViaJSON() {
+        return "";
+    }
 }
 
 
