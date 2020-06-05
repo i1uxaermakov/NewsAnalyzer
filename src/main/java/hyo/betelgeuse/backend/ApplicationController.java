@@ -1,5 +1,9 @@
 package hyo.betelgeuse.backend;
 
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
@@ -7,10 +11,17 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
+import java.util.logging.SimpleFormatter;
 
 @Controller
 public class ApplicationController {
@@ -18,6 +29,9 @@ public class ApplicationController {
     // Data Access Object (DAO) - connection to database
     @Autowired
     private ArticleRepository articleRepository;
+
+    @Autowired
+    private WordOccurrenceCounter wordOccurrenceCounter;
 
 
 
@@ -38,7 +52,7 @@ public class ApplicationController {
         return "Saved";
     }
 
-    @PostMapping(path = "/getWordsBetweenDates")
+    @GetMapping(path = "/getWordsBetweenDates")
     public @ResponseBody List<WordOccurrenceItem> getArticlesBetweenDates(
             @RequestParam @DateTimeFormat(pattern="yyyy-MM-dd") Date startDate,
             @RequestParam @DateTimeFormat(pattern="yyyy-MM-dd") Date endDate) {
@@ -46,9 +60,8 @@ public class ApplicationController {
         List<Article> articleList = articleRepository.
                 findByPublishDate(startDate, endDate);
 
-        System.out.println(articleList);
 
-        List<WordOccurrenceItem> wordOccurrences = WordOccurrenceCounter.
+        List<WordOccurrenceItem> wordOccurrences = wordOccurrenceCounter.
                 getWordOccurrences(articleList);
 
         return wordOccurrences;
@@ -63,10 +76,45 @@ public class ApplicationController {
     }
 
 
-    //todo upload a file and save everything to db
-    public String addArticlesInBulkViaJSON() {
-        return "";
+
+
+
+    @PostMapping(path = "/addArticlesInBulk")
+    public String addArticlesInBulkViaJSON(@RequestParam("file") MultipartFile file) {
+        JSONParser parser = new JSONParser();
+
+        try {
+            InputStream is = file.getInputStream();
+            InputStreamReader reader = new InputStreamReader(is);
+            JSONArray result = (JSONArray) parser.parse(reader);
+
+            Iterator<Object> iteratorOverDates = result.iterator();
+
+            while(iteratorOverDates.hasNext()) {
+                JSONObject currentEntry = (JSONObject) iteratorOverDates.next();
+
+                SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy:MM:dd");
+                Date publishDate = simpleDateFormat.parse((String)currentEntry.get("date"));
+
+                String newsOutlet = (String)currentEntry.get("site");
+
+                JSONArray titles = (JSONArray) currentEntry.get("titles");
+                Iterator<String> iteratorOverTitles = titles.iterator();
+
+                while(iteratorOverTitles.hasNext()) {
+                    Article article = new Article(publishDate, iteratorOverTitles.next(), newsOutlet);
+                    articleRepository.save(article);
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "redirect:/all";
     }
+
+
+
 }
 
 
