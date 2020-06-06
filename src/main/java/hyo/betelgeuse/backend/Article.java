@@ -7,6 +7,10 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import java.util.Date;
 
+
+/*
+Hibernate will use this class Article as a format for the sql table.
+*/
 @Entity
 public class Article {
     @Id

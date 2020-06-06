@@ -9,6 +9,10 @@ import javax.persistence.TemporalType;
 import java.util.Date;
 import java.util.List;
 
+
+/*
+Interface Repository that holds records the user makes.
+ */
 public interface ArticleRepository extends CrudRepository<Article, Integer> {
 
     @Query("SELECT a from Article a where a.publishDate " +
@@ -19,4 +23,6 @@ public interface ArticleRepository extends CrudRepository<Article, Integer> {
 
     @Query("SELECT a from Article a where a.newsOutlet = :outlet")
     List<Article> findByNewsOutlet(@Param("outlet") String outlet);
+
+
 }

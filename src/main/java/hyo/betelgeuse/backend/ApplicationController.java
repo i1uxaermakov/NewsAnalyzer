@@ -15,12 +15,21 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Logger;
 
+
+/*
+Application Controller handles HTTP requests to the application, using commands such as GET and POST.
+*/
 @Controller
 public class ApplicationController {
+
+    //Logger to debug.
+    Logger logger = Logger.getLogger(ApplicationController.class.getName());
 
     private final int standardMinNumOfOccurrences = 8;
 
@@ -32,6 +41,7 @@ public class ApplicationController {
     private WordOccurrenceCounter wordOccurrenceCounter;
 
 
+    //Adds one singular article to the database.
     @PostMapping(path="/addArticle") // Map ONLY POST Requests
     public @ResponseBody String addNewArticle (
             @RequestParam String title,
@@ -49,6 +59,8 @@ public class ApplicationController {
         return "Saved";
     }
 
+
+    //Gets the words as a WordOccurenceItem with a date between user's requested time frame.
     @GetMapping(path = "/getWordsBetweenDates")
     public @ResponseBody List<WordOccurrenceItem> getArticlesBetweenDates(
             @RequestParam @DateTimeFormat(pattern="yyyy-MM-dd") Date startDate,
@@ -77,21 +89,60 @@ public class ApplicationController {
 
         List<WordOccurrenceItem> wordOccurrences = wordOccurrenceCounter.
                 getWordOccurrences(articleList, minNumOfOccurrences);
-
         return wordOccurrences;
     }
 
 
+    //Gets all articles that is in the database.
     @GetMapping(path="/all")
     public @ResponseBody Iterable<Article> getAllArticles() {
         // This returns a JSON or XML with the users
         return articleRepository.findAll();
     }
 
+    //Get all results from database, as pairs of word with count.
+    @GetMapping(path="allPairs")
+    public @ResponseBody
+    List<WordOccurrenceItem> getAllArticlesOccur(){
+        List<Article> articles = new ArrayList<>();
+        articleRepository.findAll().forEach(articles::add);
+        List<WordOccurrenceItem> wordOccurrences = wordOccurrenceCounter.
+                getWordOccurrences(articles, 0);
+
+        return wordOccurrences;
+    }
 
 
+    //Get the x most popular words.
+    @GetMapping(path="xMostPopular")
+    public @ResponseBody
+    List<WordOccurrenceItem> getMostPopular(@RequestParam int x){
+        List<Article> articles = new ArrayList<>();
+        articleRepository.findAll().forEach(articles::add);
+        List<WordOccurrenceItem> wordOccurrences = wordOccurrenceCounter.
+                getWordOccurrences(articles, 0);
+        List<WordOccurrenceItem> mostPop = wordOccurrenceCounter.getPopularArticles(wordOccurrences, x);
+
+        return mostPop;
+    }
 
 
+    //Get the articles titles withing users time frame.
+    @GetMapping(path = "/getTitlesBetweenDates")
+    public @ResponseBody List<String> getTitlesBetweenDates(
+            @RequestParam @DateTimeFormat(pattern="yyyy-MM-dd") Date startDate,
+            @RequestParam @DateTimeFormat(pattern="yyyy-MM-dd") Date endDate) {
+
+        List<Article> articleList = articleRepository.
+                findByPublishDate(startDate, endDate);
+
+        List<String> titles = wordOccurrenceCounter.titlesByDate(articleList);
+        logger.info("Returning wordoccurrences.");
+        return titles;
+    }
+
+
+    //Upload json files through local host.
     @PostMapping(path = "/addArticlesInBulk")
     public String addArticlesInBulkViaJSON(@RequestParam("file") MultipartFile file) {
         JSONParser parser = new JSONParser();
@@ -140,13 +191,12 @@ public class ApplicationController {
 
 
 /*
-Saccha
-+ Get all results from database (as pairs of word with occurrences)
-+ Get x number of words or x most popular words (as pairs of title with occurrences)
-    -   x specifiedd by the user
-+ Get all article titles in the time interval
-
-Ilya
-+ Get all titles from specific news outlet (or in interval)
-+ Possibly filter out a number of occurrences
+Get all results from database (as pairs of title with occurrences)
+Get words occurrences in pairs in specific time interval
+Get x number of words or x most popular words (as pairs of title with occurrences)
+Get all article titles in the time interval.
+Get all titles from specific news outlet (or in interval)
+If we have different news sections like politics or entertainment, then return these different category names.
+Possibly filter out a number of occurrences
+Possibly filter out a certain word/title
  */

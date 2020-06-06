@@ -1,5 +1,10 @@
 package hyo.betelgeuse.backend;
 
+
+/*
+Word occurence item holds the count, the number of times the word appeared,
+and value, the String word.
+ */
 public class WordOccurrenceItem {
     String value;
     int count;
