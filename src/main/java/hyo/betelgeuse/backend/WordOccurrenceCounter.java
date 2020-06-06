@@ -10,7 +10,8 @@ public class WordOccurrenceCounter {
 
 
 
-    public List<WordOccurrenceItem> getWordOccurrences(List<Article> articleList) {
+    public List<WordOccurrenceItem> getWordOccurrences(
+            List<Article> articleList, int minNumOfOccurrences) {
         Map<String, Integer> wordMap = new HashMap<String, Integer>();
 
         for(Article article: articleList) {
@@ -41,11 +42,11 @@ public class WordOccurrenceCounter {
             }
         }
 
-        return convertToWordOccurrencesList(wordMap);
+        return convertToWordOccurrencesList(wordMap, minNumOfOccurrences);
     }
 
     private List<WordOccurrenceItem> convertToWordOccurrencesList(
-            Map<String, Integer> wordMap) {
+            Map<String, Integer> wordMap, int minNumOfOccurrences) {
         List<WordOccurrenceItem> resultList = new ArrayList<WordOccurrenceItem>();
 
         Iterator it = wordMap.entrySet().iterator();
@@ -53,7 +54,7 @@ public class WordOccurrenceCounter {
             Map.Entry pair = (Map.Entry)it.next();
 
             // to appear in the output, the word has to appear at least 8 times
-            if((Integer)pair.getValue() >= 8) {//todo let user specify the number
+            if((Integer)pair.getValue() >= minNumOfOccurrences) {
                 resultList.add(new WordOccurrenceItem(
                         (String)pair.getKey(), (Integer) pair.getValue()));
             }

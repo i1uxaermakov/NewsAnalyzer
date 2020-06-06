@@ -16,4 +16,7 @@ public interface ArticleRepository extends CrudRepository<Article, Integer> {
     List<Article> findByPublishDate(
             @Temporal(TemporalType.DATE) @Param("startDate") Date startDate,
             @Temporal(TemporalType.DATE) @Param("endDate") Date endDate);
+
+    @Query("SELECT a from Article a where a.newsOutlet = :outlet")
+    List<Article> findByNewsOutlet(@Param("outlet") String outlet);
 }

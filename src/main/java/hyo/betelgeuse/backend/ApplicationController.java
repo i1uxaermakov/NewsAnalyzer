@@ -3,7 +3,6 @@ package hyo.betelgeuse.backend;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
@@ -13,18 +12,17 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.FileReader;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
-import java.util.logging.SimpleFormatter;
 
 @Controller
 public class ApplicationController {
+
+    private final int standardMinNumOfOccurrences = 8;
 
     // Data Access Object (DAO) - connection to database
     @Autowired
@@ -61,7 +59,24 @@ public class ApplicationController {
 
 
         List<WordOccurrenceItem> wordOccurrences = wordOccurrenceCounter.
-                getWordOccurrences(articleList);
+                getWordOccurrences(articleList, standardMinNumOfOccurrences);
+
+        return wordOccurrences;
+    }
+
+
+    @GetMapping(path = "/getWordsBetweenDatesWithNumOfOccurences")
+    public @ResponseBody List<WordOccurrenceItem> getArticlesBetweenDatesWithNumOfOccurences(
+            @RequestParam @DateTimeFormat(pattern="yyyy-MM-dd") Date startDate,
+            @RequestParam @DateTimeFormat(pattern="yyyy-MM-dd") Date endDate,
+            @RequestParam Integer minNumOfOccurrences) {
+
+        List<Article> articleList = articleRepository.
+                findByPublishDate(startDate, endDate);
+
+
+        List<WordOccurrenceItem> wordOccurrences = wordOccurrenceCounter.
+                getWordOccurrences(articleList, minNumOfOccurrences);
 
         return wordOccurrences;
     }
@@ -110,6 +125,15 @@ public class ApplicationController {
         }
         return "redirect:/all";
     }
+
+
+    @GetMapping("/allByOutlet")
+    public @ResponseBody List<Article> getAllArticlesFromTheOutlet(
+            @RequestParam("newsOutlet") String newsOutlet) {
+        List<Article> articles = articleRepository.findByNewsOutlet(newsOutlet);
+        return articles;
+    }
+
 
 
 }
