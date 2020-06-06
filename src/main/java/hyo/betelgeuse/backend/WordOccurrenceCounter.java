@@ -1,8 +1,5 @@
 package hyo.betelgeuse.backend;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-
 import javax.annotation.Resource;
 import java.util.*;
 
@@ -12,9 +9,6 @@ public class WordOccurrenceCounter {
     private Set<String> stopWordsList;
 
 
-    public void setStopWordsList(Set<String> stopWordsList) {
-        this.stopWordsList = stopWordsList;
-    }
 
     public List<WordOccurrenceItem> getWordOccurrences(List<Article> articleList) {
         Map<String, Integer> wordMap = new HashMap<String, Integer>();
@@ -31,9 +25,13 @@ public class WordOccurrenceCounter {
                             toLowerCase().
                             trim();
 
+                    //todo cut to the punctuation (remove 's)
+
+                    // cutting the words if they are longer than 6 characters
                     if(tokenWord.length() > 6) {
-                        tokenWord = tokenWord.substring(0,6);
+                        tokenWord = tokenWord.substring(0, 6);
                     }
+
                     if (tokenWord.length() != 0) {
                         int count = wordMap.containsKey(tokenWord) ?
                                 wordMap.get(tokenWord) : 0;
@@ -53,7 +51,9 @@ public class WordOccurrenceCounter {
         Iterator it = wordMap.entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry pair = (Map.Entry)it.next();
-            if((Integer)pair.getValue() >= 8) {
+
+            // to appear in the output, the word has to appear at least 8 times
+            if((Integer)pair.getValue() >= 8) {//todo let user specify the number
                 resultList.add(new WordOccurrenceItem(
                         (String)pair.getKey(), (Integer) pair.getValue()));
             }
@@ -63,3 +63,6 @@ public class WordOccurrenceCounter {
         return resultList;
     }
 }
+
+
+

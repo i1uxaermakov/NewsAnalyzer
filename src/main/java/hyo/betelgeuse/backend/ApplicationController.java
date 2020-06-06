@@ -34,7 +34,6 @@ public class ApplicationController {
     private WordOccurrenceCounter wordOccurrenceCounter;
 
 
-
     @PostMapping(path="/addArticle") // Map ONLY POST Requests
     public @ResponseBody String addNewArticle (
             @RequestParam String title,
@@ -69,8 +68,7 @@ public class ApplicationController {
 
 
     @GetMapping(path="/all")
-    public @ResponseBody
-    Iterable<Article> getAllArticles() {
+    public @ResponseBody Iterable<Article> getAllArticles() {
         // This returns a JSON or XML with the users
         return articleRepository.findAll();
     }
@@ -114,17 +112,17 @@ public class ApplicationController {
     }
 
 
-
 }
 
 
 /*
-Get all results from database (as pairs of title with occurrences)
-Get words occurrences in pairs in specific time interval
-Get x number of words or x most popular words (as pairs of title with occurrences)
-Get all article titles in the time interval.
-Get all titles from specific news outlet (or in interval)
-If we have different news sections like politics or entertainment, then return these different category names.
-Possibly filter out a number of occurrences
-Possibly filter out a certain word/title
+Saccha
++ Get all results from database (as pairs of word with occurrences)
++ Get x number of words or x most popular words (as pairs of title with occurrences)
+    -   x specifiedd by the user
++ Get all article titles in the time interval
+
+Ilya
++ Get all titles from specific news outlet (or in interval)
++ Possibly filter out a number of occurrences
  */
